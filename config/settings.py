@@ -137,3 +137,5 @@ AUTH_USER_MODEL = "users.User"
 
 INSTALLED_APPS += ["events"]
 
+
+CSRF_TRUSTED_ORIGINS = ['https://web-production-b2ec0c.up.railway.app']
