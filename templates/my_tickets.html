@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Tickets - EventHub</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        nav {
+            background: #111827;
+            color: white;
+            padding: 18px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 25px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .tickets-box {
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .ticket-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            background: #f9fafb;
+        }
+
+        .ticket-card h2 {
+            margin-bottom: 15px;
+        }
+
+        .ticket-info {
+            margin: 8px 0;
+            color: #4b5563;
+        }
+
+        .ticket-info strong {
+            color: #1f2937;
+        }
+
+        .qr-value {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px dashed #9ca3af;
+            word-break: break-all;
+        }
+
+        .status {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 7px 12px;
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .empty p {
+            color: #6b7280;
+            margin: 15px 0 25px;
+        }
+
+        .events-button {
+            display: inline-block;
+            padding: 12px 20px;
+            background: #4f46e5;
+            color: white;
+            text-decoration: none;
+            border-radius: 7px;
+        }
+
+        .events-button:hover {
+            background: #3730a3;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<nav>
+
+    <div class="logo">
+        🎟️ EventHub
+    </div>
+
+    <div>
+
+        <a href="{% url 'homepage' %}">
+            Home
+        </a>
+
+        <a href="{% url 'events' %}">
+            Events
+        </a>
+
+        <a href="{% url 'cart' %}">
+            Cart
+        </a>
+
+        <a href="{% url 'my_tickets' %}">
+            My Tickets
+        </a>
+
+        <a href="{% url 'logout' %}">
+            Logout
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container">
+
+    <div class="tickets-box">
+
+        <h1>
+            🎟️ My Tickets
+        </h1>
+
+
+        {% if tickets %}
+
+            {% for ticket in tickets %}
+
+                <div class="ticket-card">
+
+                    <h2>
+                        {{ ticket.ticket_type.name }}
+                    </h2>
+
+
+                    <div class="ticket-info">
+
+                        <strong>Event:</strong>
+
+                        {{ ticket.ticket_type.event.name }}
+
+                    </div>
+
+
+                    <div class="ticket-info">
+
+                        <strong>Date:</strong>
+
+                        {{ ticket.ticket_type.event.date|date:"F d, Y" }}
+
+                    </div>
+
+
+                    <div class="ticket-info">
+
+                        <strong>Time:</strong>
+
+                        {{ ticket.ticket_type.event.time|time:"g:i A" }}
+
+                    </div>
+
+
+                    <div class="ticket-info">
+
+                        <strong>Venue:</strong>
+
+                        {{ ticket.ticket_type.event.venue.name }}
+
+                    </div>
+
+
+                    <div class="ticket-info">
+
+                        <strong>Purchase Status:</strong>
+
+                        {{ ticket.purchase.get_status_display }}
+
+                    </div>
+
+
+                    <span class="status">
+                        ✓ Ticket Confirmed
+                    </span>
+
+
+                    <div class="qr-value">
+
+                        <strong>QR Code ID:</strong>
+
+                        <br>
+
+                        {{ ticket.qr_code }}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="empty">
+
+                <h2>
+                    No tickets yet
+                </h2>
+
+                <p>
+                    You haven't purchased any tickets.
+                </p>
+
+                <a
+                    href="{% url 'events' %}"
+                    class="events-button"
+                >
+                    Browse Events
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

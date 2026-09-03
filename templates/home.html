@@ -1,0 +1,677 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        EventHub - Event Ticketing Platform
+    </title>
+
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+
+        /* =====================================================
+           NAVBAR
+        ===================================================== */
+
+        nav {
+            background: #111827;
+            color: white;
+            padding: 18px 8%;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 25px;
+        }
+
+
+        /* =====================================================
+           HERO
+        ===================================================== */
+
+        .hero {
+            background: #4f46e5;
+            color: white;
+            padding: 70px 8%;
+            text-align: center;
+        }
+
+
+        .hero h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+        }
+
+
+        .hero p {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+
+        /* =====================================================
+           SEARCH
+        ===================================================== */
+
+        .search-box {
+            max-width: 650px;
+            margin: auto;
+
+            display: flex;
+            gap: 10px;
+        }
+
+
+        .search-box input {
+            flex: 1;
+
+            padding: 15px;
+
+            border: none;
+            border-radius: 8px;
+
+            font-size: 16px;
+        }
+
+
+        .search-box button {
+            padding: 15px 25px;
+
+            border: none;
+            border-radius: 8px;
+
+            background: #111827;
+            color: white;
+
+            cursor: pointer;
+        }
+
+
+        /* =====================================================
+           EVENTS
+        ===================================================== */
+
+        .events {
+            padding: 50px 8%;
+        }
+
+
+        .events h2 {
+            font-size: 30px;
+            margin-bottom: 30px;
+        }
+
+
+        .event-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 25px;
+        }
+
+
+        /* =====================================================
+           EVENT CARD
+        ===================================================== */
+
+        .event-card {
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 25px;
+
+            box-shadow:
+                0 4px 15px
+                rgba(0, 0, 0, 0.08);
+        }
+
+
+        .event-card h3 {
+            margin-bottom: 15px;
+            font-size: 21px;
+        }
+
+
+        .event-card p {
+            margin: 10px 0;
+            color: #6b7280;
+        }
+
+
+        /* =====================================================
+           AVAILABLE TICKETS
+        ===================================================== */
+
+        .available {
+            color: #059669 !important;
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           SOLD OUT
+        ===================================================== */
+
+        .sold-out {
+            color: #dc2626 !important;
+            font-weight: bold;
+        }
+
+
+        /* =====================================================
+           EVENT BUTTON
+        ===================================================== */
+
+        .event-button {
+            display: block;
+
+            margin-top: 15px;
+
+            width: 100%;
+
+            padding: 12px;
+
+            border: none;
+            border-radius: 7px;
+
+            background: #4f46e5;
+
+            color: white;
+
+            cursor: pointer;
+
+            font-size: 15px;
+
+            text-align: center;
+
+            text-decoration: none;
+        }
+
+
+        .event-button:hover {
+            background: #3730a3;
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+
+        footer {
+            background: #111827;
+
+            color: white;
+
+            text-align: center;
+
+            padding: 25px;
+
+            margin-top: 30px;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 900px) {
+
+            .event-grid {
+                grid-template-columns: 1fr;
+            }
+
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ==========================================================
+     NAVBAR
+=========================================================== -->
+
+<nav>
+
+    <div class="logo">
+        🎟️ EventHub
+    </div>
+
+
+    <div>
+
+        <a href="{% url 'homepage' %}">
+            Home
+        </a>
+
+
+        <a href="{% url 'events' %}">
+            Events
+        </a>
+
+
+        {% if user.is_authenticated %}
+
+            <span style="margin-left: 25px;">
+                Hi, {{ user.username }}
+            </span>
+
+
+            <a href="{% url 'logout' %}">
+                Logout
+            </a>
+
+
+            {% if user.is_staff %}
+
+                <a href="/admin/">
+                    Admin
+                </a>
+
+            {% endif %}
+
+
+        {% else %}
+
+            <a href="{% url 'login' %}">
+                Login
+            </a>
+
+
+            <a href="{% url 'register' %}">
+                Register
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</nav>
+
+
+
+<!-- ==========================================================
+     HERO
+=========================================================== -->
+
+<section class="hero">
+
+    <h1>
+        Find & Book Your Next Event
+    </h1>
+
+
+    <p>
+        Discover amazing events and book your tickets easily.
+    </p>
+
+
+    <form
+        method="GET"
+        action="{% url 'homepage' %}"
+        class="search-box"
+    >
+
+        <input
+            type="text"
+            name="q"
+            value="{{ search_query }}"
+            placeholder="Search events..."
+        >
+
+
+        <button type="submit">
+            Search
+        </button>
+
+    </form>
+
+</section>
+
+
+
+<!-- ==========================================================
+     EVENTS
+=========================================================== -->
+
+<section class="events">
+
+    <h2>
+        Upcoming Events
+    </h2>
+
+
+    <div class="event-grid">
+
+
+        {% for event in events %}
+
+
+        <!-- ==================================================
+             EVENT CARD
+        =================================================== -->
+
+        <div
+            class="event-card"
+            data-event-id="{{ event.id }}"
+        >
+
+            <h3>
+                {{ event.name }}
+            </h3>
+
+
+            <p>
+                📍 {{ event.venue.name }}
+            </p>
+
+
+            <p>
+
+                📅
+                {{ event.date|date:"F d, Y" }}
+
+                at
+
+                {{ event.time|time:"g:i A" }}
+
+            </p>
+
+
+            <!-- ==================================================
+                 REAL AVAILABLE TICKETS
+            =================================================== -->
+
+            <p
+                id="event-availability-{{ event.id }}"
+
+                {% if event.available_quantity > 0 %}
+                    class="available"
+                {% else %}
+                    class="sold-out"
+                {% endif %}
+            >
+
+                {% if event.available_quantity > 0 %}
+
+                    🎟️
+                    {{ event.available_quantity }}
+                    tickets available
+
+                {% else %}
+
+                    🎟️ Sold Out
+
+                {% endif %}
+
+            </p>
+
+
+            <!-- ==================================================
+                 VIEW EVENT
+            =================================================== -->
+
+            <a
+                href="{% url 'event_detail' event.id %}"
+                class="event-button"
+            >
+                View Event
+            </a>
+
+        </div>
+
+
+        {% empty %}
+
+
+        <!-- ==================================================
+             NO EVENTS
+        =================================================== -->
+
+        <div class="event-card">
+
+            <h3>
+                No upcoming events
+            </h3>
+
+
+            <p>
+                There are currently no events available.
+            </p>
+
+        </div>
+
+
+        {% endfor %}
+
+
+    </div>
+
+</section>
+
+
+
+<!-- ==========================================================
+     FOOTER
+=========================================================== -->
+
+<footer>
+
+    <p>
+        © 2026 EventHub - Event Ticketing Platform
+    </p>
+
+</footer>
+
+
+
+<!-- ==========================================================
+     LIVE AVAILABILITY
+=========================================================== -->
+
+<script>
+
+    /*
+     * Get the latest ticket availability
+     * from Django.
+     */
+
+    function updateAvailability() {
+
+        const eventCards =
+            document.querySelectorAll(
+                "[data-event-id]"
+            );
+
+
+        eventCards.forEach(
+            function(card) {
+
+                const eventId =
+                    card.getAttribute(
+                        "data-event-id"
+                    );
+
+
+                fetch(
+                    `/events/${eventId}/availability/`
+                )
+
+                .then(
+                    function(response) {
+
+                        if (!response.ok) {
+
+                            throw new Error(
+                                "Network response was not OK"
+                            );
+
+                        }
+
+                        return response.json();
+
+                    }
+                )
+
+                .then(
+                    function(data) {
+
+                        let totalAvailable = 0;
+
+
+                        /*
+                         * An event can have multiple
+                         * ticket types.
+                         *
+                         * Example:
+                         *
+                         * VIP     = 46
+                         * Regular = 80
+                         *
+                         * Total    = 126
+                         */
+
+                        Object.values(
+                            data.availability
+                        ).forEach(
+                            function(quantity) {
+
+                                totalAvailable +=
+                                    Number(quantity);
+
+                            }
+                        );
+
+
+                        const availabilityElement =
+                            document.getElementById(
+                                "event-availability-" +
+                                eventId
+                            );
+
+
+                        if (!availabilityElement) {
+                            return;
+                        }
+
+
+                        /*
+                         * Update the page.
+                         */
+
+                        if (totalAvailable > 0) {
+
+                            availabilityElement.textContent =
+                                "🎟️ " +
+                                totalAvailable +
+                                " tickets available";
+
+
+                            availabilityElement.className =
+                                "available";
+
+                        }
+
+                        else {
+
+                            availabilityElement.textContent =
+                                "🎟️ Sold Out";
+
+
+                            availabilityElement.className =
+                                "sold-out";
+
+                        }
+
+                    }
+                )
+
+                .catch(
+                    function(error) {
+
+                        console.error(
+                            "Availability update failed:",
+                            error
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+
+
+
+    /*
+     * Update immediately when page opens.
+     */
+
+    updateAvailability();
+
+
+
+    /*
+     * Automatically check every 5 seconds.
+     *
+     * This means you don't have to manually
+     * refresh the homepage.
+     */
+
+    setInterval(
+        updateAvailability,
+        5000
+    );
+
+</script>
+
+
+</body>
+
+</html>

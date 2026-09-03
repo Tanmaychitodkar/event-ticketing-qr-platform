@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ event.name }} - EventHub</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        nav {
+            background: #111827;
+            color: white;
+            padding: 18px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 25px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .event-details {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 25px;
+        }
+
+        .info {
+            margin: 15px 0;
+            font-size: 18px;
+        }
+
+        .description {
+            margin-top: 30px;
+            line-height: 1.6;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 20px;
+            background: #4f46e5;
+            color: white;
+            text-decoration: none;
+            border-radius: 7px;
+        }
+
+        .back-button:hover {
+            background: #3730a3;
+        }
+
+        footer {
+            background: #111827;
+            color: white;
+            text-align: center;
+            padding: 25px;
+            margin-top: 50px;
+        }
+
+        .ticket-types {
+            margin-top: 40px;
+        }
+
+        .ticket-types h2 {
+            margin-bottom: 20px;
+        }
+
+        .ticket-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ticket-card h3 {
+            margin-bottom: 10px;
+        }
+
+        .ticket-card p {
+            margin: 5px 0;
+            color: #6b7280;
+        }
+
+        .select-ticket {
+            background: #4f46e5;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .select-ticket:hover {
+            background: #3730a3;
+        }
+
+        .select-ticket:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .quantity-input {
+            width: 70px;
+            padding: 9px;
+            margin-right: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 7px;
+        }
+
+        .available {
+            color: #059669 !important;
+            font-weight: bold;
+        }
+
+        .sold-out {
+            color: #dc2626 !important;
+            font-weight: bold;
+        }
+
+        .no-tickets {
+            background: #f9fafb;
+            padding: 25px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav>
+
+    <div class="logo">
+        🎟️ EventHub
+    </div>
+
+    <div>
+        <a href="{% url 'homepage' %}">Home</a>
+        <a href="{% url 'events' %}">Events</a>
+        <a href="/admin/">Admin</a>
+    </div>
+
+</nav>
+
+
+<div class="container">
+
+    <div class="event-details">
+
+        <h1>
+            {{ event.name }}
+        </h1>
+
+        <div class="info">
+            📍 <strong>Venue:</strong>
+            {{ event.venue.name }}
+        </div>
+
+        <div class="info">
+            🏠 <strong>Address:</strong>
+            {{ event.venue.address }}
+        </div>
+
+        <div class="info">
+            📅 <strong>Date:</strong>
+            {{ event.date|date:"F d, Y" }}
+        </div>
+
+        <div class="info">
+            ⏰ <strong>Time:</strong>
+            {{ event.time|time:"g:i A" }}
+        </div>
+
+        <div class="info">
+            🎟️ <strong>Event Ticket Allocation:</strong>
+            {{ event.ticket_allocation }}
+        </div>
+
+
+        <div class="description">
+
+            <h2>About This Event</h2>
+
+            <p>
+                {{ event.description }}
+            </p>
+
+        </div>
+
+
+        <div class="ticket-types">
+
+            <h2>Available Tickets</h2>
+
+            {% for ticket in tickets %}
+
+            <div class="ticket-card">
+
+                <div>
+
+                    <h3>
+                        {{ ticket.name }}
+                    </h3>
+
+                    <p>
+                        ₹{{ ticket.price }}
+                    </p>
+
+                    {% if ticket.available_quantity > 0 %}
+
+                    <p class="available">
+                        {{ ticket.available_quantity }} tickets available
+                    </p>
+
+                    {% else %}
+
+                    <p class="sold-out">
+                        Sold Out
+                    </p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <form
+                    method="POST"
+                    action="{% url 'add_to_cart' ticket.id %}"
+                >
+
+                    {% csrf_token %}
+
+                    <input
+                        class="quantity-input"
+                        type="number"
+                        name="quantity"
+                        value="1"
+                        min="1"
+                        max="{{ ticket.available_quantity }}"
+                        {% if ticket.available_quantity == 0 %}
+                            disabled
+                        {% endif %}
+                    >
+
+                    <button
+                        type="submit"
+                        class="select-ticket"
+                        {% if ticket.available_quantity == 0 %}
+                            disabled
+                        {% endif %}
+                    >
+                        Select Ticket
+                    </button>
+
+                </form>
+
+            </div>
+
+            {% empty %}
+
+            <div class="no-tickets">
+
+                <h3>
+                    No tickets available yet
+                </h3>
+
+                <p>
+                    Ticket types will be available soon.
+                </p>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        <a
+            href="{% url 'events' %}"
+            class="back-button"
+        >
+            ← Back to Events
+        </a>
+
+    </div>
+
+</div>
+
+
+<footer>
+
+    <p>
+        © 2026 EventHub - Event Ticketing Platform
+    </p>
+
+</footer>
+
+</body>
+</html>

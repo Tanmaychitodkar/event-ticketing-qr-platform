@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Events - EventHub</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        nav {
+            background: #111827;
+            color: white;
+            padding: 18px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 25px;
+        }
+
+        .hero {
+            background: #4f46e5;
+            color: white;
+            padding: 60px 8%;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .hero p {
+            font-size: 18px;
+        }
+
+        .events {
+            padding: 50px 8%;
+        }
+
+        .events h2 {
+            font-size: 30px;
+            margin-bottom: 30px;
+        }
+
+        .event-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .event-card h3 {
+            margin-bottom: 15px;
+        }
+
+        .event-card p {
+            margin: 10px 0;
+            color: #6b7280;
+        }
+
+        .event-button {
+            display: block;
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            background: #4f46e5;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 7px;
+        }
+
+        .event-button:hover {
+            background: #3730a3;
+        }
+
+        .empty {
+            background: white;
+            padding: 40px;
+            text-align: center;
+            border-radius: 12px;
+        }
+
+        footer {
+            background: #111827;
+            color: white;
+            text-align: center;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .event-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav>
+
+    <div class="logo">
+        🎟️ EventHub
+    </div>
+
+    <div>
+        <a href="{% url 'homepage' %}">Home</a>
+        <a href="{% url 'events' %}">Events</a>
+        <a href="/admin/">Admin</a>
+    </div>
+
+</nav>
+
+
+<section class="hero">
+
+    <h1>Discover Events</h1>
+
+    <p>
+        Find and book your next event.
+    </p>
+
+</section>
+
+
+<section class="events">
+
+    <h2>Upcoming Events</h2>
+
+    <div class="event-grid">
+
+        {% for event in events %}
+
+        <div class="event-card">
+
+            <h3>
+                {{ event.name }}
+            </h3>
+
+            <p>
+                📍 {{ event.venue.name }}
+            </p>
+
+            <p>
+                📅 {{ event.date|date:"F d, Y" }}
+                at
+                {{ event.time|time:"g:i A" }}
+            </p>
+
+            <p>
+                🎟️ {{ event.ticket_allocation }} tickets available
+            </p>
+
+            <a
+                href="{% url 'event_detail' event.id %}"
+                class="event-button"
+            >
+                View Event
+            </a>
+
+        </div>
+
+        {% empty %}
+
+        <div class="empty">
+
+            <h3>No upcoming events</h3>
+
+            <p>
+                There are currently no events available.
+            </p>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+<footer>
+    <p>© 2026 EventHub - Event Ticketing Platform</p>
+</footer>
+
+</body>
+</html>
