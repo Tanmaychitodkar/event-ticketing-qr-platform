@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("+_gp_&8ohteo=$q(f0nt&uoescn8_6k%ixkq+38@d-5@a4u9yv")
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-local-development-key-change-this")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -135,3 +135,4 @@ MAILERS = {
 AUTH_USER_MODEL = "users.User"
 
 INSTALLED_APPS += ["events"]
+
