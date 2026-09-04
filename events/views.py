@@ -5,6 +5,11 @@ from django.db import models, transaction
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
+from users.models import User
+
+import base64
+from io import BytesIO
+import qrcode
 
 from .models import (
     Event,
@@ -787,6 +792,29 @@ def my_tickets_view(request):
         "-created_at"
     )
 
+    # Generate a real QR image for every ticket
+    for ticket in tickets:
+
+        qr = qrcode.QRCode(
+            version=1,
+            box_size=10,
+            border=4
+        )
+
+        # The existing unique UUID is the QR data.
+        qr.add_data(str(ticket.qr_code))
+        qr.make(fit=True)
+
+        qr_image = qr.make_image()
+
+        # Store image temporarily in memory
+        buffer = BytesIO()
+        qr_image.save(buffer, format="PNG")
+
+        # Convert image to Base64 for the HTML template
+        ticket.qr_image = base64.b64encode(
+            buffer.getvalue()
+        ).decode("utf-8")
 
     return render(
         request,
@@ -795,3 +823,156 @@ def my_tickets_view(request):
             "tickets": tickets,
         }
     )
+    
+# ============================================================
+# V4 — QR CODE VALIDATION / CHECK-IN API
+# ============================================================
+
+@login_required(login_url="login")
+def validate_ticket(request):
+
+    # Only organizers can validate tickets
+    if request.user.role != User.Role.ORGANIZER:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "You are not authorized to validate tickets."
+            },
+            status=403
+        )
+
+    # Only POST requests are allowed
+    if request.method != "POST":
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Only POST requests are allowed."
+            },
+            status=405
+        )
+
+    qr_code = request.POST.get("qr_code", "").strip()
+
+    if not qr_code:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "QR code is required."
+            },
+            status=400
+        )
+
+    try:
+        ticket = Ticket.objects.select_related(
+            "ticket_type",
+            "ticket_type__event",
+            "user"
+        ).get(qr_code=qr_code)
+
+    except (Ticket.DoesNotExist, ValueError):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Invalid QR code. Ticket not found."
+            },
+            status=404
+        )
+
+    # Reject duplicate scans
+    if ticket.checked_in:
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "Ticket has already been checked in.",
+                "checked_in_at": (
+                    ticket.checked_in_at.isoformat()
+                    if ticket.checked_in_at
+                    else None
+                )
+            },
+            status=409
+        )
+
+    # Check in ticket
+    ticket.checked_in = True
+    ticket.checked_in_at = timezone.now()
+
+    ticket.save(
+        update_fields=[
+            "checked_in",
+            "checked_in_at"
+        ]
+    )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "message": "Ticket checked in successfully.",
+            "ticket_id": str(ticket.qr_code),
+            "ticket_type": ticket.ticket_type.name,
+            "event": ticket.ticket_type.event.name,
+            "checked_in_at": ticket.checked_in_at.isoformat()
+        }
+    )
+
+
+    
+    
+
+    # Mark ticket as checked in
+   
+# ============================================================
+# V4 — STAFF SCANNER PAGE
+# ============================================================
+
+@login_required(login_url="login")
+def ticket_scanner(request):
+
+    # Only organizers can access the scanner
+    if request.user.role != User.Role.ORGANIZER:
+        messages.error(
+            request,
+            "You are not authorized to access the ticket scanner."
+        )
+        return redirect("homepage")
+
+    return render(
+        request,
+        "ticket_scanner.html"
+    )
+    
+    
+# ============================================================
+# ORGANIZER DASHBOARD
+# ============================================================
+
+@login_required(login_url="login")
+def organizer_dashboard(request):
+
+    # Only organizers can access
+    if request.user.role != User.Role.ORGANIZER:
+
+        messages.error(
+            request,
+            "You are not authorized to access the organizer panel."
+        )
+
+        return redirect("homepage")
+
+    events = Event.objects.select_related(
+        "venue"
+    ).prefetch_related(
+        "ticket_types"
+    ).order_by(
+        "date",
+        "time"
+    )
+
+    return render(
+        request,
+        "organizer_dashboard.html",
+        {
+            "events": events,
+        }
+    )    
+    

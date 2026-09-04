@@ -17,6 +17,9 @@ from events.views import (
     checkout_view,
     process_payment,
     my_tickets_view,
+    validate_ticket,
+    ticket_scanner,
+    organizer_dashboard
 )
 
 
@@ -115,6 +118,35 @@ urlpatterns = [
         "my-tickets/",
         my_tickets_view,
         name="my_tickets"
+    ),
+    
+    
+    
+# ============================================================
+# V4 — QR VALIDATION
+# ============================================================
+
+    path(
+        "validate-ticket/",
+        validate_ticket,
+        name="validate_ticket"
+   ),
+    
+   #organizer dashboard---------
+   
+   path(
+    "organizer/",
+    organizer_dashboard,
+    name="organizer_dashboard"
+), 
+# ============================================================
+# V4 — STAFF SCANNER PAGE
+# ============================================================
+
+    path(
+        "ticket-scanner/",
+        ticket_scanner,
+        name="ticket_scanner"
     ),
 
 
