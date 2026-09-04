@@ -28,30 +28,54 @@ def register_view(request):
         elif User.objects.filter(email=email).exists():
             messages.error(request, "Email already exists.")
 
-        elif role not in [User.Role.ATTENDEE, User.Role.ORGANIZER]:
+        elif role not in [
+            User.Role.ATTENDEE,
+            User.Role.ORGANIZER
+        ]:
             messages.error(request, "Invalid role selected.")
 
         else:
+            # ------------------------------------------------
+            # IMPORTANT:
+            # Organizer is NOT Django Admin staff.
+            # Only the real Django superuser gets /admin/ access.
+            # ------------------------------------------------
+
             user = User.objects.create_user(
                 username=username,
                 email=email,
                 password=password,
                 role=role,
+                is_staff=False,
+                is_superuser=False,
             )
 
             login(request, user)
+
             return redirect("homepage")
 
     return render(request, "register.html")
 
 
 def login_view(request):
+
     if request.user.is_authenticated:
+        if request.user.role == User.Role.ORGANIZER:
+            return redirect("organizer_dashboard")
+
         return redirect("homepage")
 
     if request.method == "POST":
-        username = request.POST.get("username", "").strip()
-        password = request.POST.get("password", "")
+
+        username = request.POST.get(
+            "username",
+            ""
+        ).strip()
+
+        password = request.POST.get(
+            "password",
+            ""
+        )
 
         user = authenticate(
             request,
@@ -60,14 +84,27 @@ def login_view(request):
         )
 
         if user is not None:
+
             login(request, user)
+
+            # Organizer goes to Organizer Panel
+            if user.role == User.Role.ORGANIZER:
+                return redirect("organizer_dashboard")
+
+            # Attendee goes to normal homepage
             return redirect("homepage")
 
-        messages.error(request, "Invalid username or password.")
+        messages.error(
+            request,
+            "Invalid username or password."
+        )
 
-    return render(request, "login.html")
-
+    return render(
+        request,
+        "login.html"
+    )
 
 def logout_view(request):
     logout(request)
+
     return redirect("homepage")

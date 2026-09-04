@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>Ticket Scanner - EventHub</title>
+
+<!-- QR Code Scanner Library -->
+<script
+    src="https://unpkg.com/html5-qrcode"
+    type="text/javascript">
+</script>
+
+<style>
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background: #f5f7fb;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    nav {
+    background: #111827;
+    color: white;
+    padding: 18px 8%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+nav > div:last-child {
+    display: flex;
+    align-items: center;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 25px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+nav a:hover {
+    color: #a5b4fc;
+}
+
+nav span {
+    font-size: 15px;
+    color: #e5e7eb;
+}
+
+    .container {
+        max-width: 700px;
+        margin: 50px auto;
+        padding: 20px;
+    }
+
+    .scanner-box {
+        background: white;
+        padding: 35px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    h1 {
+        margin-bottom: 10px;
+    }
+
+    .description {
+        color: #6b7280;
+        margin-bottom: 25px;
+    }
+
+    /* Camera scanner */
+
+    #reader {
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto 25px;
+    }
+
+    #reader video {
+        width: 100% !important;
+        border-radius: 10px;
+    }
+
+    .divider {
+        margin: 25px 0;
+        color: #6b7280;
+        font-weight: bold;
+    }
+
+    input {
+        width: 100%;
+        padding: 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 7px;
+        margin-bottom: 15px;
+        font-size: 16px;
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 7px;
+        background: #4f46e5;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #3730a3;
+    }
+
+    #result {
+        margin-top: 25px;
+        padding: 15px;
+        border-radius: 7px;
+        display: none;
+    }
+
+    .success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .error {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+</style>
+```
+
+</head>
+
+<body>
+
+<nav>
+
+    <div class="logo">
+        🎟️ EventHub
+    </div>
+
+    <div>
+
+        <a href="{% url 'homepage' %}">
+            Home
+        </a>
+
+        <a href="{% url 'events' %}">
+            Events
+        </a>
+
+        <a href="{% url 'ticket_scanner' %}">
+            🎟️ Scan Tickets
+        </a>
+
+       
+
+        <span style="margin-left: 25px;">
+            Hi, {{ user.username }}
+        </span>
+
+        <a href="{% url 'logout' %}">
+            Logout
+        </a>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+```
+<div class="scanner-box">
+
+    <h1>📷 Ticket Validation</h1>
+
+    <p class="description">
+        Scan the ticket QR code using your camera.
+    </p>
+
+
+    <!-- ==================================================
+         CAMERA QR SCANNER
+    =================================================== -->
+
+    <div id="reader"></div>
+
+
+    <div class="divider">
+        OR ENTER TICKET ID MANUALLY
+    </div>
+
+
+    <!-- ==================================================
+         MANUAL FALLBACK
+    =================================================== -->
+
+    <form id="scanner-form">
+
+        {% csrf_token %}
+
+        <input
+            type="text"
+            id="qr_code"
+            name="qr_code"
+            placeholder="Enter Ticket ID"
+            required
+        >
+
+        <button type="submit">
+            Validate Ticket
+        </button>
+
+    </form>
+
+
+    <!-- ==================================================
+         RESULT
+    =================================================== -->
+
+    <div id="result"></div>
+
+</div>
+```
+
+</div>
+
+<script>
+
+    const form = document.getElementById("scanner-form");
+    const input = document.getElementById("qr_code");
+    const result = document.getElementById("result");
+
+    /*
+     * Prevent multiple requests while one QR scan
+     * is being processed.
+     */
+    let scannerLocked = false;
+
+
+    // ========================================================
+    // VALIDATE TICKET
+    // ========================================================
+
+    async function validateQRCode(qrCode) {
+
+        if (scannerLocked) {
+            return;
+        }
+
+        scannerLocked = true;
+
+        qrCode = qrCode.trim();
+
+        if (!qrCode) {
+            scannerLocked = false;
+            return;
+        }
+
+
+        const csrfToken = document.querySelector(
+            "[name=csrfmiddlewaretoken]"
+        ).value;
+
+
+        try {
+
+            const response = await fetch(
+                "{% url 'validate_ticket' %}",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/x-www-form-urlencoded",
+
+                        "X-CSRFToken": csrfToken
+                    },
+
+                    body: new URLSearchParams({
+                        qr_code: qrCode
+                    })
+                }
+            );
+
+
+            const data = await response.json();
+
+
+            result.style.display = "block";
+
+
+            // =================================================
+            // SUCCESS
+            // =================================================
+
+            if (data.success) {
+
+                result.className = "success";
+
+                result.innerHTML = `
+                    <strong>✓ Ticket Valid</strong>
+                    <br><br>
+
+                    Event: ${data.event}
+                    <br>
+
+                    Ticket Type: ${data.ticket_type}
+                    <br>
+
+                    Checked in successfully.
+                `;
+
+                input.value = "";
+
+            }
+
+
+            // =================================================
+            // REJECTED
+            // =================================================
+
+            else {
+
+                result.className = "error";
+
+                result.innerHTML = `
+                    <strong>✗ Ticket Rejected</strong>
+                    <br><br>
+
+                    ${data.message}
+                `;
+
+            }
+
+        }
+
+        catch (error) {
+
+            console.error("Validation error:", error);
+
+            result.style.display = "block";
+
+            result.className = "error";
+
+            result.innerHTML = `
+                <strong>✗ Error</strong>
+                <br><br>
+
+                Unable to validate the ticket.
+            `;
+
+        }
+
+
+        /*
+         * Unlock scanner after a short delay.
+         * This prevents the same QR from being
+         * submitted many times immediately.
+         */
+
+        setTimeout(function () {
+
+            scannerLocked = false;
+
+        }, 1500);
+
+    }
+
+
+    // ========================================================
+    // CAMERA SCAN SUCCESS
+    // ========================================================
+
+    function onScanSuccess(decodedText, decodedResult) {
+
+        console.log(
+            "QR code detected:",
+            decodedText
+        );
+
+
+        /*
+         * Put the scanned UUID into the input box
+         * so the staff member can see what was scanned.
+         */
+
+        input.value = decodedText;
+
+
+        /*
+         * Send the scanned QR data to Django.
+         */
+
+        validateQRCode(decodedText);
+
+    }
+
+
+    // ========================================================
+    // CAMERA SCAN FAILURE
+    // ========================================================
+
+    function onScanFailure(error) {
+
+        /*
+         * This function is intentionally empty.
+         *
+         * While searching for a QR code,
+         * the scanner continuously reports failures.
+         * That is normal.
+         */
+
+    }
+
+
+    // ========================================================
+    // START CAMERA SCANNER
+    // ========================================================
+
+    const scanner = new Html5QrcodeScanner(
+        "reader",
+        {
+            fps: 10,
+
+            qrbox: {
+                width: 250,
+                height: 250
+            },
+
+            rememberLastUsedCamera: true
+        },
+
+        false
+    );
+
+
+    scanner.render(
+        onScanSuccess,
+        onScanFailure
+    );
+
+
+    // ========================================================
+    // MANUAL TICKET ID VALIDATION
+    // ========================================================
+
+    form.addEventListener(
+        "submit",
+        function(event) {
+
+            event.preventDefault();
+
+
+            const qrCode = input.value.trim();
+
+
+            if (!qrCode) {
+                return;
+            }
+
+
+            validateQRCode(qrCode);
+
+        }
+    );
+
+</script>
+
+</body>
+
+</html>

@@ -282,46 +282,63 @@
         🎟️ EventHub
     </div>
 
-
     <div>
 
         <a href="{% url 'homepage' %}">
             Home
         </a>
 
-
         <a href="{% url 'events' %}">
             Events
         </a>
 
-
         {% if user.is_authenticated %}
+
+            <!-- ============================= -->
+            <!-- ATTENDEE NAVBAR -->
+            <!-- ============================= -->
+
+            {% if user.role == "ATTENDEE" %}
+
+                <a href="{% url 'cart' %}">
+                    Cart
+                </a>
+
+                {% if user.tickets.exists %}
+                    <a href="{% url 'my_tickets' %}">
+                        My Tickets
+                    </a>
+                {% endif %}
+
+            {% endif %}
+
+
+            <!-- ============================= -->
+            <!-- ORGANIZER NAVBAR -->
+            <!-- ============================= -->
+
+            {% if user.role == "ORGANIZER" %}
+
+                <a href="{% url 'ticket_scanner' %}">
+                    🎟️ Scan Tickets
+                </a>
+
+            {% endif %}
+
 
             <span style="margin-left: 25px;">
                 Hi, {{ user.username }}
             </span>
 
-
             <a href="{% url 'logout' %}">
                 Logout
             </a>
-
-
-            {% if user.is_staff %}
-
-                <a href="/admin/">
-                    Admin
-                </a>
-
-            {% endif %}
-
 
         {% else %}
 
             <a href="{% url 'login' %}">
                 Login
             </a>
-
 
             <a href="{% url 'register' %}">
                 Register
@@ -332,9 +349,6 @@
     </div>
 
 </nav>
-
-
-
 <!-- ==========================================================
      HERO
 =========================================================== -->

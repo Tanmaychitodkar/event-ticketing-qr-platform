@@ -121,6 +121,14 @@
             background: #3730a3;
         }
 
+
+        .qr-image {
+    width: 220px;
+    height: 220px;
+    display: block;
+    margin: 15px auto;
+}
+
     </style>
 
 </head>
@@ -232,11 +240,22 @@
 
                     <div class="qr-value">
 
-                        <strong>QR Code ID:</strong>
+                        <strong>Scan QR Code:</strong>
 
-                        <br>
+                        <br><br>
 
-                        {{ ticket.qr_code }}
+                        <img
+                            src="data:image/png;base64,{{ ticket.qr_image }}"
+                            alt="Ticket QR Code"
+                            class="qr-image"
+                
+                            >
+
+                        <br><br>
+
+                        <small>
+                            Ticket ID: {{ ticket.qr_code }}
+                        </small>
 
                     </div>
 

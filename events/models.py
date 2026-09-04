@@ -269,6 +269,23 @@ class Ticket(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True
     )
+    
+    # ========================================================
+    # V4 — QR CHECK-IN
+    # ========================================================
+
+    checked_in = models.BooleanField(
+        default=False
+    )
+
+    checked_in_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+    
+    
+    
+    
 
     def __str__(self):
         return f"{self.ticket_type.name} - {self.qr_code}"

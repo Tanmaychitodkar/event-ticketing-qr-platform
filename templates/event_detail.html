@@ -172,9 +172,59 @@
     </div>
 
     <div>
-        <a href="{% url 'homepage' %}">Home</a>
-        <a href="{% url 'events' %}">Events</a>
-        <a href="/admin/">Admin</a>
+
+        <a href="{% url 'homepage' %}">
+            Home
+        </a>
+
+        <a href="{% url 'events' %}">
+            Events
+        </a>
+
+        {% if user.is_authenticated %}
+
+            {% if user.role == "ATTENDEE" %}
+
+                <a href="{% url 'cart' %}">
+                    Cart
+                </a>
+
+                {% if user.tickets.exists %}
+                    <a href="{% url 'my_tickets' %}">
+                        My Tickets
+                    </a>
+                {% endif %}
+
+            {% endif %}
+
+            {% if user.role == "ORGANIZER" %}
+
+                <a href="{% url 'ticket_scanner' %}">
+                    🎟️ Scan Tickets
+                </a>
+
+            {% endif %}
+
+            <span style="margin-left: 25px;">
+                Hi, {{ user.username }}
+            </span>
+
+            <a href="{% url 'logout' %}">
+                Logout
+            </a>
+
+        {% else %}
+
+            <a href="{% url 'login' %}">
+                Login
+            </a>
+
+            <a href="{% url 'register' %}">
+                Register
+            </a>
+
+        {% endif %}
+
     </div>
 
 </nav>
@@ -225,11 +275,13 @@
         </div>
 
 
-        <div class="ticket-types">
+        {% if user.role == "ATTENDEE" %}
 
-            <h2>Available Tickets</h2>
+<div class="ticket-types">
 
-            {% for ticket in tickets %}
+    <h2>Available Tickets</h2>
+
+    {% for ticket in tickets %}
 
             <div class="ticket-card">
 
@@ -310,7 +362,7 @@
             {% endfor %}
 
         </div>
-
+            {% endif %}
 
         <a
             href="{% url 'events' %}"

@@ -141,14 +141,61 @@
 <body>
 
 <nav>
-    <div class="logo">🎟️ EventHub</div>
+
+    <div class="logo">
+        🎟️ EventHub
+    </div>
 
     <div>
-        <a href="{% url 'homepage' %}">Home</a>
-        <a href="{% url 'events' %}">Events</a>
-        <a href="{% url 'cart' %}">Cart</a>
-        <a href="{% url 'logout' %}">Logout</a>
+
+        <a href="{% url 'homepage' %}">
+            Home
+        </a>
+
+        <a href="{% url 'events' %}">
+            Events
+        </a>
+
+        <a href="{% url 'cart' %}">
+            Cart
+        </a>
+
+        {% if user.is_authenticated %}
+
+            {% if user.role == "ATTENDEE" and user.tickets.exists %}
+                <a href="{% url 'my_tickets' %}">
+                    My Tickets
+                </a>
+            {% endif %}
+
+            {% if user.role == "ORGANIZER" %}
+                <a href="/admin/">
+                    Admin
+                </a>
+            {% endif %}
+
+            <span style="margin-left: 25px;">
+                Hi, {{ user.username }}
+            </span>
+
+            <a href="{% url 'logout' %}">
+                Logout
+            </a>
+
+        {% else %}
+
+            <a href="{% url 'login' %}">
+                Login
+            </a>
+
+            <a href="{% url 'register' %}">
+                Register
+            </a>
+
+        {% endif %}
+
     </div>
+
 </nav>
 
 <div class="container">
